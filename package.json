@@ -1,0 +1,45 @@
+{
+  "name": "gambit-monorepo",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "concurrently -n worker,web -c yellow,cyan \"npm run dev -w @gambit/server\" \"npm run dev -w @gambit/web\"",
+    "dev:server": "npm run dev -w @gambit/server",
+    "dev:web": "npm run dev -w @gambit/web",
+    "build": "npm run build -w @gambit/web",
+    "deploy": "npm run build && npm run deploy -w @gambit/server",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:workers": "npm run test:workers -w @gambit/server",
+    "e2e": "npm run e2e -w @gambit/web",
+    "sim": "npm run sim -w @gambit/engine",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "preflight": "node --experimental-strip-types scripts/preflight.ts",
+    "check": "npm run typecheck && npm run lint && npm run test && npm run preflight"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@types/node": "^26.5.1",
+    "@types/ws": "^8.18.1",
+    "concurrently": "^10.0.5",
+    "eslint": "^10.10.0",
+    "eslint-plugin-boundaries": "^7.2.0",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "fast-check": "^4.10.0",
+    "prettier": "^3.9.6",
+    "tsx": "^4.23.13",
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.70.0",
+    "vitest": "^5.0.0",
+    "ws": "^8.21.3"
+  }
+}

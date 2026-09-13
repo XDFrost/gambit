@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "gambit",
+      "runtimeExecutable": "bash",
+      "runtimeArgs": ["-lc", "export PATH=$HOME/.nvm/versions/node/v22.22.3/bin:$PATH && npm run dev"],
+      "port": 5173
+    },
+    {
+      "name": "gambit-cf",
+      "runtimeExecutable": "bash",
+      "runtimeArgs": ["-lc", "export PATH=$HOME/.nvm/versions/node/v22.22.3/bin:$PATH && npm run build -w @gambit/web && npm run dev:cf -w @gambit/server"],
+      "port": 8787
+    }
+  ]
+}

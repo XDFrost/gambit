@@ -1,0 +1,25 @@
+{
+  "name": "@gambit/server",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch dev/local.ts",
+    "dev:cf": "wrangler dev --port 8787",
+    "deploy": "wrangler deploy",
+    "deploy:dry": "wrangler deploy --dry-run --outdir=dist",
+    "test": "vitest run --config vitest.config.ts",
+    "test:workers": "vitest run --config vitest.workers.config.ts",
+    "typecheck": "tsc -p tsconfig.json && tsc -p tsconfig.node.json"
+  },
+  "dependencies": {
+    "@gambit/engine": "*",
+    "@gambit/protocol": "*"
+  },
+  "devDependencies": {
+    "@cloudflare/vitest-pool-workers": "^0.22.0",
+    "@cloudflare/workers-types": "^5.20260911.1",
+    "vitest": "^4.1.11",
+    "wrangler": "^4.131.1"
+  }
+}

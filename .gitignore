@@ -1,0 +1,14 @@
+node_modules/
+dist/
+coverage/
+.env
+*.log
+.DS_Store
+playwright-report/
+test-results/
+
+# local env and tool state
+.env.*
+!.env.example
+.wrangler/
+.vercel/

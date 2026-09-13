@@ -1,0 +1,201 @@
+@import 'tailwindcss';
+@import './fonts.css';
+
+/* ------------------------------------------------------------------ palette
+   One theme per page. Dark "night table" is the default; light mirrors it with warm neutrals.
+   Team colours are semantic (Ember / Tide); the single UI accent is a muted gold.
+*/
+:root {
+  color-scheme: dark;
+  --table: #0e1013;
+  --panel: #151820;
+  --raised: #1b1f29;
+  --sunken: #0a0b0e;
+  --hairline: rgb(255 255 255 / 0.08);
+  --hairline-strong: rgb(255 255 255 / 0.16);
+  --ink: #ecebe6;
+  --ink-muted: #9a9ba6;
+  --ink-faint: #62646e;
+  --accent: #d1a955;
+  --accent-ink: #1a1508;
+  --ember: #d9683a;
+  --ember-ink: #1c110b;
+  --ember-soft: rgb(217 104 58 / 0.18);
+  --tide: #2f6fc4;
+  --tide-ink: #f2f6fd;
+  --tide-soft: rgb(47 111 196 / 0.2);
+  --bystander: #b8ae9c;
+  --bystander-ink: #24211c;
+  --assassin: #0b0b0d;
+  --assassin-ink: #e8e2d3;
+  --paper: #ece7da;
+  --paper-ink: #1f1e1b;
+  --paper-shadow: rgb(0 0 0 / 0.45);
+  --danger: #d65c5c;
+  --shadow-tint: 14 16 19;
+}
+
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme='dark']) {
+    color-scheme: light;
+    --table: #f4f2ec;
+    --panel: #fbfaf6;
+    --raised: #f1efe8;
+    --sunken: #e9e6dd;
+    --hairline: rgb(20 18 12 / 0.09);
+    --hairline-strong: rgb(20 18 12 / 0.18);
+    --ink: #1a1b1f;
+    --ink-muted: #5c5e66;
+    --ink-faint: #8c8e96;
+    --accent: #a8842e;
+    --accent-ink: #fbf7ec;
+    --ember: #cf5d2f;
+    --ember-ink: #fff5ef;
+    --ember-soft: rgb(207 93 47 / 0.14);
+    --tide: #2a63b0;
+    --tide-ink: #f2f6fd;
+    --tide-soft: rgb(42 99 176 / 0.14);
+    --bystander: #cfc6b3;
+    --bystander-ink: #2a2721;
+    --assassin: #15151a;
+    --assassin-ink: #ece6d6;
+    --paper: #fdfcf8;
+    --paper-ink: #1f1e1b;
+    --paper-shadow: rgb(40 32 12 / 0.16);
+    --danger: #b83f3f;
+    --shadow-tint: 60 50 30;
+  }
+}
+:root[data-theme='light'] {
+  color-scheme: light;
+  --table: #f4f2ec;
+  --panel: #fbfaf6;
+  --raised: #f1efe8;
+  --sunken: #e9e6dd;
+  --hairline: rgb(20 18 12 / 0.09);
+  --hairline-strong: rgb(20 18 12 / 0.18);
+  --ink: #1a1b1f;
+  --ink-muted: #5c5e66;
+  --ink-faint: #8c8e96;
+  --accent: #a8842e;
+  --accent-ink: #fbf7ec;
+  --ember: #cf5d2f;
+  --ember-ink: #fff5ef;
+  --ember-soft: rgb(207 93 47 / 0.14);
+  --tide: #2a63b0;
+  --tide-ink: #f2f6fd;
+  --tide-soft: rgb(42 99 176 / 0.14);
+  --bystander: #cfc6b3;
+  --bystander-ink: #2a2721;
+  --assassin: #15151a;
+  --assassin-ink: #ece6d6;
+  --paper: #fdfcf8;
+  --paper-ink: #1f1e1b;
+  --paper-shadow: rgb(40 32 12 / 0.16);
+  --danger: #b83f3f;
+  --shadow-tint: 60 50 30;
+}
+
+/* ------------------------------------------------------------------ tailwind theme */
+@theme inline {
+  --color-table: var(--table);
+  --color-panel: var(--panel);
+  --color-raised: var(--raised);
+  --color-sunken: var(--sunken);
+  --color-hairline: var(--hairline);
+  --color-hairline-strong: var(--hairline-strong);
+  --color-ink: var(--ink);
+  --color-ink-muted: var(--ink-muted);
+  --color-ink-faint: var(--ink-faint);
+  --color-accent: var(--accent);
+  --color-accent-ink: var(--accent-ink);
+  --color-ember: var(--ember);
+  --color-ember-ink: var(--ember-ink);
+  --color-ember-soft: var(--ember-soft);
+  --color-tide: var(--tide);
+  --color-tide-ink: var(--tide-ink);
+  --color-tide-soft: var(--tide-soft);
+  --color-bystander: var(--bystander);
+  --color-bystander-ink: var(--bystander-ink);
+  --color-assassin: var(--assassin);
+  --color-assassin-ink: var(--assassin-ink);
+  --color-paper: var(--paper);
+  --color-paper-ink: var(--paper-ink);
+  --color-danger: var(--danger);
+
+  --font-sans: 'Satoshi', ui-sans-serif, system-ui, sans-serif;
+  --font-display: 'Cabinet Grotesk', 'Satoshi', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+
+  /* Shape lock: tiles 12, cards 16 (inner 10), panels 20 (inner 14), inputs 10, buttons pill. */
+  --radius-tile: 12px;
+  --radius-card: 16px;
+  --radius-card-inner: 10px;
+  --radius-panel: 20px;
+  --radius-panel-inner: 14px;
+  --radius-input: 10px;
+
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-tabletop: cubic-bezier(0.32, 0.72, 0, 1);
+
+  --shadow-tile: 0 1px 0 rgb(255 255 255 / 0.35) inset, 0 6px 14px -6px var(--paper-shadow);
+  --shadow-panel: 0 20px 50px -30px rgb(var(--shadow-tint) / 0.7);
+  --shadow-card: 0 18px 40px -18px rgb(var(--shadow-tint) / 0.9);
+}
+
+/* ------------------------------------------------------------------ base */
+html,
+body,
+#root {
+  min-height: 100dvh;
+}
+body {
+  margin: 0;
+  background: var(--table);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  overflow-x: hidden;
+}
+.font-display {
+  letter-spacing: -0.02em;
+}
+.tabular {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+button {
+  font: inherit;
+  color: inherit;
+}
+::selection {
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+
+/* Table vignette: a static gradient on a fixed, non-interactive layer. No filters (GPU cost, capture glitches). */
+.table-grain::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  pointer-events: none;
+  background: radial-gradient(120% 90% at 50% 0%, transparent 55%, rgb(var(--shadow-tint) / 0.35) 100%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}

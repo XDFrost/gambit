@@ -1,0 +1,8 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "lib": ["ES2022"],
+    "types": ["node"]
+  },
+  "include": ["dev", "test/unit", "src/room/RoomCore.ts", "src/room/storage.ts", "src/room/rateLimit.ts", "src/room/roomCode.ts"]
+}

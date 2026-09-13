@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(brew install *)",
+      "Bash(git mv *)",
+      "Bash(node -e 'const p=require\\(\"./apps/server/node_modules/@cloudflare/vitest-pool-workers/package.json\"\\); console.log\\(p.version\\); console.log\\(JSON.stringify\\(p.exports,null,1\\)\\); console.log\\(\"peer\", JSON.stringify\\(p.peerDependencies\\)\\)')",
+      "Bash(node -p 'require\\(\"./node_modules/vite/package.json\"\\).version')",
+      "Bash(node -p 'try{require\\(\"./apps/server/node_modules/vite/package.json\"\\).version}catch{\"no nested vite\"}')",
+      "Bash(node -p 'require\\(\"./node_modules/@cloudflare/workers-types/package.json\"\\).version')",
+      "Bash(node -e 'const p=require\\(\"./node_modules/@cloudflare/vitest-pool-workers/package.json\"\\); console.log\\(p.version\\); console.log\\(JSON.stringify\\(p.exports,null,1\\)\\); console.log\\(\"peer\", JSON.stringify\\(p.peerDependencies\\)\\); console.log\\(\"deps\", JSON.stringify\\(p.dependencies\\)\\)')"
+    ]
+  }
+}
