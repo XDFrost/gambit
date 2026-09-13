@@ -1,18 +1,41 @@
-import type { ClientView, Event, TeamId } from '@gambit/protocol';
+import type { ClientView, Event, Owner, TeamId } from '@gambit/protocol';
 
+export interface FeedActor {
+  id: string;
+  nickname: string;
+  team: TeamId | null;
+}
+
+/**
+ * One log entry. `text` is the full sentence (used for screen readers and tooltips);
+ * the structured fields drive the compact chip rendering.
+ */
 export interface FeedItem {
   seq: number;
-  kind: 'info' | 'clue' | 'reveal' | 'card' | 'turn' | 'system' | 'result';
-  team?: TeamId;
+  kind: 'clue' | 'reveal' | 'card' | 'info' | 'turn' | 'system' | 'result';
+  team?: TeamId | undefined;
+  actor?: FeedActor | undefined;
   text: string;
+  word?: string | undefined;
+  owner?: Owner | undefined;
+  count?: number | undefined;
+  cardDefId?: string | undefined;
+  cardName?: string | undefined;
+  target?: string | undefined;
+  result?: string | undefined;
 }
 
 const teamName = (t: TeamId) => (t === 'ember' ? 'Ember' : 'Tide');
 const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
-/** Turns a server event into one plain feed sentence, or null for events not worth showing. */
+/** Turns a server event into one feed entry, or null for events not worth showing. */
 export const formatFeedItem = (event: Event, view: ClientView | null): Omit<FeedItem, 'seq'> | null => {
-  const nick = (id: string | null) => (id ? view?.public.players.find((p) => p.id === id)?.nickname ?? 'Someone' : 'The board');
+  const actor = (id: string | null): FeedActor | undefined => {
+    if (!id) return undefined;
+    const p = view?.public.players.find((x) => x.id === id);
+    return { id, nickname: p?.nickname ?? 'Someone', team: p?.team ?? null };
+  };
+  const nick = (id: string | null) => actor(id)?.nickname ?? 'Someone';
   const cardName = (defId: string) => view?.public.cardCatalog[defId]?.name ?? defId;
   const word = (tileId: number) => view?.public.tiles.find((t) => t.id === tileId)?.word ?? 'a word';
 
@@ -26,54 +49,66 @@ export const formatFeedItem = (event: Event, view: ClientView | null): Omit<Feed
     case 'PLAYER_RECONNECTED':
       return { kind: 'system', text: `${nick(event.playerId)} is back.` };
     case 'GAME_STARTED':
-      return { kind: 'turn', team: event.startingTeam, text: `The game begins. ${teamName(event.startingTeam)} goes first.` };
+      return { kind: 'turn', team: event.startingTeam, text: `${teamName(event.startingTeam)} goes first.` };
     case 'TURN_STARTED':
       return {
         kind: 'turn',
         team: event.team,
-        text: `${teamName(event.team)}'s turn.${event.bankedGuesses > 0 ? ` They start with ${event.bankedGuesses} extra guess${event.bankedGuesses > 1 ? 'es' : ''}.` : ''}`,
+        text: `${teamName(event.team)}'s turn${event.bankedGuesses > 0 ? `, +${event.bankedGuesses} banked` : ''}`,
       };
-    case 'CLUE_GIVEN':
-      return { kind: 'clue', team: event.team, text: `${teamName(event.team)}'s clue: ${event.word} ${event.count}.` };
+    case 'CLUE_GIVEN': {
+      const spy = view?.public.players.find((p) => p.team === event.team && p.role === 'spymaster');
+      return {
+        kind: 'clue',
+        team: event.team,
+        actor: spy ? { id: spy.id, nickname: spy.nickname, team: spy.team } : undefined,
+        word: event.word,
+        count: event.count,
+        text: `${spy?.nickname ?? teamName(event.team)} gave the clue ${event.word} ${event.count}.`,
+      };
+    }
     case 'CARD_DRAWN':
-      if (event.reason === 'opening') return null;
-      return { kind: 'card', team: event.team, text: `${teamName(event.team)} drew a card.` };
+      return null;
     case 'CARD_PLAYED': {
-      const target = event.target?.tiles?.length ? ` on ${event.target.tiles.map(word).join(' and ')}` : '';
-      return { kind: 'card', team: event.team, text: `${nick(event.by)} played ${cardName(event.cardDefId)}${target}.` };
+      const target = event.target?.tiles?.length ? event.target.tiles.map(word).join(' + ') : undefined;
+      return {
+        kind: 'card',
+        team: event.team,
+        actor: actor(event.by),
+        cardDefId: event.cardDefId,
+        cardName: cardName(event.cardDefId),
+        ...(target ? { target } : {}),
+        text: `${nick(event.by)} played ${cardName(event.cardDefId)}${target ? ` on ${target}` : ''}.`,
+      };
     }
     case 'EFFECT_APPLIED':
-      if (event.kind === 'none') return { kind: 'card', team: event.team, text: `${cardName(event.cardDefId)} had nothing to affect.` };
-      if (event.kind === 'guesses' && event.delta !== undefined)
-        return { kind: 'card', team: event.team, text: `${teamName(event.team)} ${event.delta > 0 ? 'gained' : 'lost'} ${Math.abs(event.delta)} guess${Math.abs(event.delta) === 1 ? '' : 'es'}.` };
+      if (event.kind === 'none') return { kind: 'system', team: event.team, text: `${cardName(event.cardDefId)} had nothing to affect.` };
       if (event.kind === 'swap' && event.tiles?.length === 2)
-        return { kind: 'card', team: event.team, text: `${word(event.tiles[0]!)} and ${word(event.tiles[1]!)} swapped places.` };
+        return { kind: 'system', team: event.team, text: `${word(event.tiles[0]!)} and ${word(event.tiles[1]!)} swapped places.` };
       return null;
     case 'INFO_REVEALED':
-      return { kind: 'info', text: `${cardName(event.cardDefId)} says: ${describeInfo(event.cardDefId, event.result, event.tiles.map(word))}` };
+      return {
+        kind: 'info',
+        cardDefId: event.cardDefId,
+        cardName: cardName(event.cardDefId),
+        result: describeInfo(event.cardDefId, event.result, event.tiles.map(word)),
+        text: `${cardName(event.cardDefId)}: ${describeInfo(event.cardDefId, event.result, event.tiles.map(word))}`,
+      };
     case 'WORD_REVEALED': {
-      const who = event.by ? nick(event.by) : `${cardName('dredge') === 'dredge' ? 'A card' : 'A card'}`;
       const owner =
-        event.owner === 'assassin'
-          ? 'the Assassin'
-          : event.owner === 'neutral'
-            ? 'a bystander'
-            : `${cap(event.owner)}'s agent`;
-      return { kind: 'reveal', team: event.team, text: `${who} revealed ${event.word}. It was ${owner}.` };
+        event.owner === 'assassin' ? 'the Assassin' : event.owner === 'neutral' ? 'a bystander' : `${cap(event.owner)}'s agent`;
+      return {
+        kind: 'reveal',
+        team: event.team,
+        actor: actor(event.by),
+        word: event.word,
+        owner: event.owner,
+        ...(event.by ? {} : { cardName: 'Card' }),
+        text: `${event.by ? nick(event.by) : 'A card'} revealed ${event.word}. It was ${owner}.`,
+      };
     }
-    case 'TURN_ENDED': {
-      const why =
-        event.reason === 'wrong_guess'
-          ? 'after a wrong guess'
-          : event.reason === 'exhausted'
-            ? 'out of guesses'
-            : event.reason === 'voluntary'
-              ? 'by choice'
-              : event.reason === 'card'
-                ? 'by a card'
-                : 'after a timeout';
-      return { kind: 'turn', team: event.team, text: `${teamName(event.team)}'s turn ended ${why}.` };
-    }
+    case 'TURN_ENDED':
+      return null;
     case 'GAME_OVER':
       return {
         kind: 'result',
@@ -95,17 +130,17 @@ export const formatFeedItem = (event: Event, view: ClientView | null): Omit<Feed
 export const describeInfo = (defId: string, result: string, words: string[]): string => {
   switch (defId) {
     case 'litmus':
-      return result === 'yes' ? `${words[0]} is yours.` : `${words[0]} is not yours.`;
+      return result === 'yes' ? `${words[0]} is yours` : `${words[0]} is not yours`;
     case 'hazard_sense':
-      return result === 'safe' ? `${words[0]} is safe.` : `${words[0]} is dangerous.`;
+      return result === 'safe' ? `${words[0]} is safe` : `${words[0]} is dangerous`;
     case 'triangulate':
-      return result === 'none' ? 'none of those are yours.' : 'one of the three is marked as yours.';
+      return result === 'none' ? 'none of those are yours' : 'one of the three is yours';
     case 'sonar':
-      return `${result} of ${words[0]}'s neighbours are yours.`;
+      return `${result} neighbours of ${words[0]} are yours`;
     case 'parity':
-      return `that row holds an ${result} number of your words.`;
+      return `that row holds an ${result} number of yours`;
     case 'cartographer':
-      return `${result} of those four are yours.`;
+      return `${result} of those four are yours`;
     default:
       return result;
   }

@@ -33,6 +33,8 @@ export interface WordTileFaceProps extends Omit<ButtonHTMLAttributes<HTMLButtonE
   markedByMe?: boolean;
   /** When set, a reveal control appears at the top-right corner. */
   onReveal?: (() => void) | undefined;
+  /** Skip the flip transition (the staged reveal already animated it). */
+  instant?: boolean;
 }
 
 const ownerBg: Record<Owner, string> = {
@@ -73,6 +75,7 @@ export const WordTileFace = forwardRef<HTMLButtonElement, WordTileFaceProps>(fun
     marks = [],
     markedByMe,
     onReveal,
+    instant,
     className,
     disabled,
     ...rest
@@ -105,7 +108,7 @@ export const WordTileFace = forwardRef<HTMLButtonElement, WordTileFaceProps>(fun
         <motion.div
           className="relative h-full w-full [transform-style:preserve-3d]"
           animate={{ rotateY: revealed ? 180 : 0 }}
-          transition={reduced ? { duration: 0 } : { duration: 0.6, ease: easeTabletop }}
+          transition={reduced || instant ? { duration: 0 } : { duration: 0.6, ease: easeTabletop }}
           initial={false}
         >
           {/* Front: paper */}

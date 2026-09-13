@@ -7,7 +7,11 @@
       "Bash(node -p 'require\\(\"./node_modules/vite/package.json\"\\).version')",
       "Bash(node -p 'try{require\\(\"./apps/server/node_modules/vite/package.json\"\\).version}catch{\"no nested vite\"}')",
       "Bash(node -p 'require\\(\"./node_modules/@cloudflare/workers-types/package.json\"\\).version')",
-      "Bash(node -e 'const p=require\\(\"./node_modules/@cloudflare/vitest-pool-workers/package.json\"\\); console.log\\(p.version\\); console.log\\(JSON.stringify\\(p.exports,null,1\\)\\); console.log\\(\"peer\", JSON.stringify\\(p.peerDependencies\\)\\); console.log\\(\"deps\", JSON.stringify\\(p.dependencies\\)\\)')"
+      "Bash(node -e 'const p=require\\(\"./node_modules/@cloudflare/vitest-pool-workers/package.json\"\\); console.log\\(p.version\\); console.log\\(JSON.stringify\\(p.exports,null,1\\)\\); console.log\\(\"peer\", JSON.stringify\\(p.peerDependencies\\)\\); console.log\\(\"deps\", JSON.stringify\\(p.dependencies\\)\\)')",
+      "Bash(ffprobe -v error -show_entries format=duration:stream=codec_type,width,height -of default=nw=1 /Users/pratham.gupta/Desktop/here.mov)",
+      "Bash(ffmpeg -v error -y -i /Users/pratham.gupta/Desktop/here.mov -vf \"fps=4,scale=420:-1,tile=4x7\" sheet.png)",
+      "Bash(ffmpeg -v error -y -i /Users/pratham.gupta/Desktop/here.mov -vf \"fps=1\" full_%02d.png)",
+      "Bash(ffmpeg -i /Users/pratham.gupta/Desktop/here.mov -af \"silencedetect=noise=-35dB:d=0.15\" -f null -)"
     ]
   }
 }

@@ -70,7 +70,7 @@ export const Hand = ({ className }: { className?: string }) => {
                 exit={reduced ? { opacity: 0 } : { opacity: 0, y: -160, scale: 0.9, transition: { duration: 0.35, ease: easeOutExpo } }}
                 transition={springCard}
                 {...(reduced || reason ? {} : { whileHover: { y: lift - 14, rotate: 0, scale: 1.03 } })}
-                className={cn('-mx-3 origin-bottom', isTargeting && 'z-10')}
+                className={cn('relative -mx-3 origin-bottom', isTargeting && 'z-10')}
               >
                 <AbilityCardFace
                   def={def}
@@ -80,6 +80,11 @@ export const Hand = ({ className }: { className?: string }) => {
                   onClick={() => inspect(card.id)}
                   className={cn(isPending && 'animate-pulse')}
                 />
+                {reason ? (
+                  <span className="pointer-events-none absolute inset-x-2 bottom-3 rounded-full bg-black/70 px-2 py-1 text-center text-[10px] leading-tight text-white/90 ring-1 ring-white/15" aria-hidden>
+                    {reason}
+                  </span>
+                ) : null}
               </motion.div>
             );
           })}

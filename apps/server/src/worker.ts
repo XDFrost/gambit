@@ -13,10 +13,12 @@ const allowedOrigins = (env: Env): string[] =>
     .map((s) => s.trim().replace(/\/+$/, ''))
     .filter(Boolean);
 
-const originAllowed = (env: Env, origin: string | null): boolean => {
+/** Same-origin requests (the Worker serving its own SPA, local dev) are always allowed. */
+const originAllowed = (env: Env, origin: string | null, selfOrigin: string): boolean => {
+  if (origin === null || origin === selfOrigin) return true;
   const list = allowedOrigins(env);
   if (list.length === 0) return true;
-  return origin !== null && list.includes(origin);
+  return list.includes(origin);
 };
 
 const corsHeaders = (env: Env, origin: string | null): HeadersInit => {
@@ -54,7 +56,7 @@ export default {
 
     if (url.pathname.startsWith('/api/')) {
       if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers: cors });
-      if (!originAllowed(env, origin) && origin !== null) return json({ error: 'Origin not allowed' }, 403, cors);
+      if (!originAllowed(env, origin, url.origin)) return json({ error: 'Origin not allowed' }, 403, cors);
       if (url.pathname === '/api/rooms' && request.method === 'POST') return createRoom(env, cors);
       if (url.pathname === '/api/health') return json({ ok: true }, 200, cors);
       return json({ error: 'Not found' }, 404, cors);
@@ -63,7 +65,7 @@ export default {
     const ws = url.pathname.match(/^\/ws\/([A-Za-z0-9]{6})$/);
     if (ws) {
       // Browsers always send Origin on WebSocket upgrades; non-browser clients (tests) send none.
-      if (!originAllowed(env, origin) && origin !== null) return json({ error: 'Origin not allowed' }, 403);
+      if (!originAllowed(env, origin, url.origin)) return json({ error: 'Origin not allowed' }, 403);
       const parsed = RoomCodeSchema.safeParse(ws[1]!.toUpperCase());
       if (!parsed.success) return json({ error: 'Invalid room code' }, 400);
       const stub = env.ROOMS.get(env.ROOMS.idFromName(parsed.data));

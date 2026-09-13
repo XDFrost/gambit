@@ -31,6 +31,8 @@ export interface GameStoreState {
   targeting: Targeting | null;
   confirmCardId: string | null;
   muted: boolean;
+  /** Until this time the board keeps showing so a staged reveal can finish before the results screen. */
+  revealHoldUntil: number;
 
   setConnection: (c: ConnectionState) => void;
   setRoom: (code: string | null) => void;
@@ -48,6 +50,12 @@ export interface GameStoreState {
 
 let flashId = 0;
 const MAX_FEED = 40;
+/** Total length of the staged reveal (lift, hold, flip, settle). Keep in sync with RevealStage. */
+export const REVEAL_STAGE_MS = 3000;
+/** Snapshots apply this long before the stage ends, so the settled tile is already correct underneath. */
+const SNAPSHOT_LEAD_MS = 150;
+let pendingSnapshot: ServerEnvelope | null = null;
+let pendingTimer: number | null = null;
 
 export const useGameStore = create<GameStoreState>((set, get) => ({
   view: null,
@@ -61,6 +69,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
   inspectingCardId: null,
   targeting: null,
   confirmCardId: null,
+  revealHoldUntil: 0,
   muted: (() => {
     try {
       return localStorage.getItem('gambit.muted') === '1';
@@ -77,6 +86,19 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
     const s = get();
     switch (event.type) {
       case 'STATE_SNAPSHOT': {
+        // While a reveal is being staged, hold the new state so the table changes with the flip.
+        const holdFor = s.revealHoldUntil - SNAPSHOT_LEAD_MS - Date.now();
+        if (holdFor > 0) {
+          pendingSnapshot = env;
+          if (pendingTimer) window.clearTimeout(pendingTimer);
+          pendingTimer = window.setTimeout(() => {
+            const next = pendingSnapshot;
+            pendingSnapshot = null;
+            pendingTimer = null;
+            if (next) useGameStore.getState().applyEnvelope(next);
+          }, holdFor);
+          return;
+        }
         const patch: Partial<GameStoreState> = { view: event.view, lastSeq: Math.max(s.lastSeq, env.seq) };
         // Drop UI state that no longer applies (card left the hand, turn moved on).
         const hand = event.view.team?.hand ?? [];
@@ -109,7 +131,9 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
         const item = formatFeedItem(event, s.view);
         const feed = item ? [...s.feed, { ...item, seq: env.seq }].slice(-MAX_FEED) : s.feed;
         const flashes = [...s.flashes, { id: ++flashId, event, at: Date.now() }].slice(-12);
-        set({ feed, flashes, lastSeq: Math.max(s.lastSeq, env.seq) });
+        const patch: Partial<GameStoreState> = { feed, flashes, lastSeq: Math.max(s.lastSeq, env.seq) };
+        if (event.type === 'WORD_REVEALED') patch.revealHoldUntil = Math.max(s.revealHoldUntil, Date.now() + REVEAL_STAGE_MS);
+        set(patch);
       }
     }
   },
@@ -143,7 +167,10 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
     set({ muted });
   },
   dismissError: () => set({ lastError: null }),
-  reset: () =>
+  reset: () => {
+    pendingSnapshot = null;
+    if (pendingTimer) window.clearTimeout(pendingTimer);
+    pendingTimer = null;
     set({
       view: null,
       connection: 'idle',
@@ -156,7 +183,9 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       inspectingCardId: null,
       targeting: null,
       confirmCardId: null,
-    }),
+      revealHoldUntil: 0,
+    });
+  },
 }));
 
 /** Convenience selectors. */

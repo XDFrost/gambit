@@ -240,6 +240,11 @@ export class RoomCore {
     return true;
   }
 
+  /** Apply a server-originated command (timers, tests). Never reachable from a socket. */
+  async applyInternal(command: Extract<EngineCommand, { type: `INTERNAL_${string}` }>): Promise<boolean> {
+    return this.applyAndBroadcast(command, null, null, null);
+  }
+
   // ---------------------------------------------------------------- timers
 
   /** Run due timers. Called by the host's alarm. */

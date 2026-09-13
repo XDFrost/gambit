@@ -30,6 +30,16 @@ export const RoomPage = () => {
   const connection = useGameStore((s) => s.connection);
   const lastError = useGameStore((s) => s.lastError);
   const reset = useGameStore((s) => s.reset);
+  const revealHoldUntil = useGameStore((s) => s.revealHoldUntil);
+  const [, rerender] = useState(0);
+
+  // Keep the board on screen until a staged reveal has finished, then show the results.
+  const holdingReveal = view?.public.status === 'game_over' && revealHoldUntil > Date.now();
+  useEffect(() => {
+    if (!holdingReveal) return;
+    const t = window.setTimeout(() => rerender((n) => n + 1), revealHoldUntil - Date.now() + 50);
+    return () => window.clearTimeout(t);
+  }, [holdingReveal, revealHoldUntil]);
 
   // Read storage once, synchronously, so the first render already knows how we will enter.
   const [entry] = useState<Entry>(() => {
@@ -88,7 +98,7 @@ export const RoomPage = () => {
     case 'in_game':
       return <GamePage />;
     case 'game_over':
-      return <ResultsPage />;
+      return holdingReveal ? <GamePage /> : <ResultsPage />;
   }
 };
 

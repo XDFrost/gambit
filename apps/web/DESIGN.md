@@ -28,7 +28,7 @@ The `design-taste-frontend` skill marks realtime collaboration and dense product
 |---|---|---|
 | Card drawn | slides in from the deck side, settles with a spring | a new resource arrived |
 | Card played | lifts out of the fan and fades | the card left your hand |
-| Word revealed | 3D flip to the owner colour | a physical card turned over |
+| Word revealed | staged: the card lifts and glows over a dimmed table for 1.45 s with a rising tone, flips to its colour with the outcome sound, settles; the rest of the table (header, clue, hand) only updates when it lands | one deliberate, shared moment per guess |
 | Turn handoff | team-colour band crosses the screen for 1.5 s | control changed hands |
 | Clue given | clue text scales in | the turn's key fact is now fixed |
 | Assassin | dark full-screen wash with the skull | the game is over, badly |
